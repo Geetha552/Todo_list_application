@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Todo App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 400px;
+            margin: auto;
+            padding-top: 20px;
+        }
+
+        input,
+        button {
+            padding: 8px;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+
+        ul {
+            padding: 0;
+        }
+
+        li {
+            list-style: none;
+            background: #eee;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            background: #c3f5c3;
+        }
+
+        .btn-delete {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Enhanced Todo List</h2>
+
+    <!-- Task Input Field -->
+    <input type="text" id="taskInput" placeholder="Enter a new task..." />
+
+    <button id="addBtn">Add Task</button>
+
+    <!-- Search Input -->
+    <input type="text" id="searchInput" placeholder="Search tasks..." />
+
+    <!-- Todo List -->
+    <ul id="taskList"></ul>
+
+    <script>
+        const taskInput = document.getElementById("taskInput");
+        const addBtn = document.getElementById("addBtn");
+        const taskList = document.getElementById("taskList");
+        const searchInput = document.getElementById("searchInput");
+
+        // Load existing tasks on page load
+        document.addEventListener("DOMContentLoaded", loadTasks);
+
+        // Add Task Button Click
+        addBtn.onclick = function () {
+            const text = taskInput.value.trim();
+            if (text === "") {
+                alert("Task cannot be empty!");
+                return;
+            }
+
+            const task = {
+                id: Date.now(), // Unique ID
+                text,
+                completed: false
+            };
+
+            addTaskToDOM(task);
+            saveTask(task);
+
+            taskInput.value = "";
+        };
+
+        // Store task in localStorage
+        function saveTask(task) {
+            let tasks = JSON.parse(localStorage.getItem("todos")) || [];
+            tasks.push(task);
+            localStorage.setItem("todos", JSON.stringify(tasks));
+        }
+
+        // Load tasks from storage
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem("todos")) || [];
+            taskList.innerHTML = "";
+            tasks.forEach(task => addTaskToDOM(task));
+        }
+
+        // Create and display task element
+        function addTaskToDOM(task) {
+            const li = document.createElement("li");
+
+            if (task.completed) {
+                li.classList.add("completed");
+            }
+
+            li.innerHTML = `
+                <span onclick="toggleComplete(${task.id})">${task.text}</span>
+                <button class="btn-delete" onclick="deleteTask(${task.id})">X</button>
+            `;
+            li.setAttribute("data-id", task.id);
+
+            taskList.appendChild(li);
+        }
+
+        // Toggle task completion status
+        function toggleComplete(id) {
+            let tasks = JSON.parse(localStorage.getItem("todos")) || [];
+            tasks = tasks.map(task => {
+                if (task.id === id) task.completed = !task.completed;
+                return task;
+            });
+            localStorage.setItem("todos", JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        // Delete task
+        function deleteTask(id) {
+            let tasks = JSON.parse(localStorage.getItem("todos")) || [];
+            tasks = tasks.filter(task => task.id !== id);
+            localStorage.setItem("todos", JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        // Real-time search functionality
+        searchInput.addEventListener("input", function () {
+            const searchText = searchInput.value.toLowerCase();
+            const tasks = document.querySelectorAll("li");
+
+            tasks.forEach(task => {
+                const text = task.innerText.toLowerCase();
+                task.style.display = text.includes(searchText) ? "flex" : "none";
+            });
+        });
+    </script>
+
+</body>
+
+</html>
